@@ -1,0 +1,8 @@
+{
+  "yolo": true,
+  "granularity": "standard",
+  "commit_docs": true,
+  "use_agents": true,
+  "mode": "brownfield",
+  "created": "2026-06-28"
+}

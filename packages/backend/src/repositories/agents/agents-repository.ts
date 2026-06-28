@@ -41,6 +41,10 @@ export interface UpdateAgentPatch {
   scenarios?: Scenario[];
   mcpConfig?: MCPConfig;
   defaultStoragePath?: string;
+  agentType?: 'moca' | 'external_agentcore';
+  externalRuntimeArn?: string;
+  externalRuntimeRegion?: string;
+  streamFormat?: 'strands' | 'other';
 }
 
 /** Page of shared agents from the `isShared-createdAt-index` GSI. */
