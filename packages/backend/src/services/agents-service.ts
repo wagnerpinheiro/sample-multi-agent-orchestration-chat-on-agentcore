@@ -301,6 +301,10 @@ export class AgentsService {
         })),
         mcpConfig: sourceAgent.mcpConfig,
         defaultStoragePath: sourceAgent.defaultStoragePath,
+        agentType: sourceAgent.agentType,
+        externalRuntimeArn: sourceAgent.externalRuntimeArn,
+        externalRuntimeRegion: sourceAgent.externalRuntimeRegion,
+        streamFormat: sourceAgent.streamFormat,
       };
 
       return await this.createAgent(targetUserId, input, targetUsername);
