@@ -12,18 +12,17 @@ A user can connect any AgentCore Runtime they own and talk to it through Moca wi
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Backend proxies invocations to external runtimes with SigV4 signing — Validated in Phase 1: Backend & Data Layer
+- [x] Strands-based runtimes use stream pass-through; non-Strands runtimes fall back to plain text — Validated in Phase 1
+- [x] External runtimes follow the same owner + org-sharing model as native Moca agents — Validated in Phase 1
+- [x] DynamoDB agent schema extended with optional fields only (no new table, no breaking change) — Validated in Phase 1
+- [x] IAM: `bedrock-agentcore:InvokeRuntime` added to backend Lambda role — Validated in Phase 1
 
 ### Active
 
 - [ ] User can register an external runtime via a dedicated Integrations screen (ARN, region, name, description, stream type)
 - [ ] Registered external runtimes appear in the agent list alongside native Moca agents
 - [ ] User can open a chat session with an external runtime agent
-- [ ] Backend proxies invocations to external runtimes with SigV4 signing
-- [ ] Strands-based runtimes use stream pass-through; non-Strands runtimes fall back to plain text
-- [ ] External runtimes follow the same owner + org-sharing model as native Moca agents
-- [ ] DynamoDB agent schema extended with optional fields only (no new table, no breaking change)
-- [ ] IAM: `bedrock-agentcore:InvokeRuntime` added to backend Lambda role
 
 ### Out of Scope
 
@@ -53,10 +52,10 @@ A user can connect any AgentCore Runtime they own and talk to it through Moca wi
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Backend as SigV4 proxy (not frontend) | Frontend cannot hold AWS credentials safely | — Pending |
-| Strands pass-through + plain text fallback | Avoids implementing a generic stream parser for v1 | — Pending |
-| Optional fields on existing agent table | User constraint: no DynamoDB schema breaking changes | — Pending |
-| Dedicated Integrations screen (not Agent Builder) | User preference; keeps external runtime registration separate from prompt-based agent creation | — Pending |
+| Backend as SigV4 proxy (not frontend) | Frontend cannot hold AWS credentials safely | ✓ Implemented |
+| Strands pass-through + plain text fallback | Avoids implementing a generic stream parser for v1 | ✓ Implemented |
+| Optional fields on existing agent table | User constraint: no DynamoDB schema breaking changes | ✓ Implemented |
+| Dedicated Integrations screen (not Agent Builder) | User preference; keeps external runtime registration separate from prompt-based agent creation | — Phase 2 |
 
 ---
-*Last updated: 2026-06-28 — initial project definition*
+*Last updated: 2026-06-28 — Phase 1 complete*
