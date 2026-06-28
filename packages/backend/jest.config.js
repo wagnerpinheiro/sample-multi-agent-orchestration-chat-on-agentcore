@@ -28,6 +28,11 @@ export default {
     // load its runtime values (parseUserId, isAgentId, …). Without this, the
     // package's `exports` map is not understood by jest-resolve.
     '^@moca/core$': '<rootDir>/../libs/core/src/index.ts',
+    // Resolve @moca/tool-definitions similarly — needed when the backend's
+    // config/data/default-agents.ts imports GATEWAY_TOOL_NAMES et al.
+    '^@moca/tool-definitions$': '<rootDir>/../libs/tool-definitions/src/index.ts',
+    // Resolve @moca/generative-ui-catalog — transitively required by tool-definitions.
+    '^@moca/generative-ui-catalog$': '<rootDir>/../libs/generative-ui-catalog/src/index.ts',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
