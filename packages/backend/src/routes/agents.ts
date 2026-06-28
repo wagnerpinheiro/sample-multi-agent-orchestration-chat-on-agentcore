@@ -41,19 +41,48 @@ const agentIdParams = z.object({ agentId: zAgentId });
 const sharedAgentParams = z.object({ userId: zUserId, agentId: zAgentId });
 
 /** Request body for creating an agent. */
-const createAgentBody = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  systemPrompt: z.string().min(1),
-  enabledTools: z.array(z.string()),
+const createAgentBody = z
+  .object({
+    name: z.string().min(1),
+    description: z.string().min(1),
+    systemPrompt: z.string().min(1),
+    enabledTools: z.array(z.string()),
+    icon: z.string().optional(),
+    scenarios: z.array(z.any()).optional(),
+    mcpConfig: z.any().optional(),
+    defaultStoragePath: z.string().optional(),
+    // External AgentCore runtime integration (Phase 1)
+    agentType: z.enum(['moca', 'external_agentcore']).optional(),
+    externalRuntimeArn: z.string().optional(),
+    externalRuntimeRegion: z.string().optional(),
+    streamFormat: z.enum(['strands', 'other']).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.agentType === 'external_agentcore' && !data.externalRuntimeArn) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'externalRuntimeArn is required when agentType is external_agentcore',
+        path: ['externalRuntimeArn'],
+      });
+    }
+  });
+
+/** Request body for updating an agent (partial — defined explicitly because
+ * Zod v4 `.partial()` does not propagate `.superRefine` from a refined schema). */
+const updateAgentBody = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  systemPrompt: z.string().min(1).optional(),
+  enabledTools: z.array(z.string()).optional(),
   icon: z.string().optional(),
   scenarios: z.array(z.any()).optional(),
   mcpConfig: z.any().optional(),
   defaultStoragePath: z.string().optional(),
+  agentType: z.enum(['moca', 'external_agentcore']).optional(),
+  externalRuntimeArn: z.string().optional(),
+  externalRuntimeRegion: z.string().optional(),
+  streamFormat: z.enum(['strands', 'other']).optional(),
 });
-
-/** Request body for updating an agent (partial). */
-const updateAgentBody = createAgentBody.partial();
 
 /**
  * Agent list retrieval endpoint
