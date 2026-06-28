@@ -30,7 +30,7 @@
 ### Infrastructure
 
 - [ ] **INFRA-01**: `bedrock-agentcore:InvokeRuntime` permission added to the backend Lambda execution role in CDK
-- [ ] **INFRA-02**: New backend route `POST /agents/:agentId/invoke` (or similar) that handles the SigV4 proxy logic
+- [x] **INFRA-02**: New backend route `POST /agents/:agentId/invoke` (or similar) that handles the SigV4 proxy logic
 - [ ] **INFRA-03**: Backend agent API (`GET /agents/:agentId`) returns the new optional fields to the frontend
 
 ## v2 Requirements
@@ -78,7 +78,7 @@
 | INV-05 | Phase 3 | Pending |
 | INV-06 | Phase 3 | Pending |
 | INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 3 | Pending |
+| INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Pending |
 
 **Coverage:**

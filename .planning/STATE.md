@@ -43,10 +43,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 | 2026-06-28 | Strands pass-through + plain text fallback | No generic stream format for v1 |
 | 2026-06-28 | Optional fields on existing agent DynamoDB table | User constraint: no breaking schema changes |
 | 2026-06-28 | Dedicated Integrations screen | Keeps external runtime registration separate from native agent creation |
+| 2026-06-28 | node:https.request for SigV4 proxy | Consistent with session-stream-handler pattern; no extra HTTP client dependency |
+| 2026-06-28 | Stream wrapped in Promise<void> | asyncHandler must hold connection open until upstream stream completes |
 
 ---
 
-*Last updated: 2026-06-28 — project initialized*
+*Last updated: 2026-06-28 — plan 01-03 complete (SigV4 invoke proxy route)*
 
 ---
 
