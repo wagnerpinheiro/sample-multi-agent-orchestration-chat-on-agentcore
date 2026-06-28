@@ -12,6 +12,14 @@
 
 **Why first:** Everything downstream (UI, invocation wiring) depends on the data model being stable and the proxy route existing. Frontend can be built against a contract that is already deployed and testable. CDK changes must precede any live invocation because the Lambda execution role needs `bedrock-agentcore:InvokeRuntime` before the proxy handler can call the service.
 
+**Plans:** 4 plans (2 waves)
+
+Plans:
+- [ ] 01-01-PLAN.md — Extend agent schema: types, UpdateAgentPatch, item.ts marshal, Zod schemas (REG-03, INFRA-03) [wave 1]
+- [ ] 01-02-PLAN.md — CDK: grant bedrock-agentcore:InvokeRuntime to backend Lambda role (INFRA-01) [wave 1]
+- [ ] 01-03-PLAN.md — Add POST /agents/:agentId/invoke SigV4 proxy route + signing deps (INFRA-02) [wave 2]
+- [ ] 01-04-PLAN.md — Verify sharing/clone + integration round-trip for external agents (REG-04, DISC-02) [wave 2]
+
 ### Tasks
 
 - [ ] **Extend agent type definitions** — add `agentType: 'moca' | 'external_agentcore'`, `externalRuntimeArn?: string`, `externalRuntimeRegion?: string`, and `streamFormat?: 'strands' | 'other'` to the shared `Agent` interface in `packages/backend/src/types/agent-types.ts` and the mirrored frontend type in `packages/frontend/src/types/agent.ts`
