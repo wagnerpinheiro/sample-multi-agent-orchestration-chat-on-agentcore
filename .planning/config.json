@@ -4,5 +4,24 @@
   "commit_docs": true,
   "use_agents": true,
   "mode": "brownfield",
-  "created": "2026-06-28"
+  "created": "2026-06-28",
+  "model_profile": "balanced",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "auto_advance": true,
+    "nyquist_validation": true,
+    "ui_phase": true,
+    "ui_safety_gate": true,
+    "skip_discuss": true
+  },
+  "git": {
+    "branching_strategy": "milestone",
+    "quick_branch_template": null
+  },
+  "hooks": {
+    "context_warnings": true,
+    "workflow_guard": true
+  }
 }

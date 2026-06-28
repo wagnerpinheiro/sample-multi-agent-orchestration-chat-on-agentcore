@@ -12,7 +12,7 @@
 
 **Why first:** Everything downstream (UI, invocation wiring) depends on the data model being stable and the proxy route existing. Frontend can be built against a contract that is already deployed and testable. CDK changes must precede any live invocation because the Lambda execution role needs `bedrock-agentcore:InvokeRuntime` before the proxy handler can call the service.
 
-**Plans:** 4 plans (2 waves)
+**Plans:** 0/4 plans executed
 
 Plans:
 - [ ] 01-01-PLAN.md — Extend agent schema: types, UpdateAgentPatch, item.ts marshal, Zod schemas (REG-03, INFRA-03) [wave 1]
