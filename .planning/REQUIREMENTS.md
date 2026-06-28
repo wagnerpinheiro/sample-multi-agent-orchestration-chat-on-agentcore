@@ -9,7 +9,7 @@
 
 - [ ] **REG-01**: User can navigate to a dedicated Integrations screen in the Moca UI
 - [ ] **REG-02**: User can create an external runtime integration by providing: Runtime ARN (required), AWS region (optional, defaults to deployment region), display name, description, and stream format (`strands` | `other`)
-- [ ] **REG-03**: Registered external runtimes are stored as agent records in DynamoDB with `agentType: 'external_agentcore'` and optional fields `externalRuntimeArn`, `externalRuntimeRegion`, `streamFormat`
+- [x] **REG-03**: Registered external runtimes are stored as agent records in DynamoDB with `agentType: 'external_agentcore'` and optional fields `externalRuntimeArn`, `externalRuntimeRegion`, `streamFormat`
 - [x] **REG-04**: External runtimes follow the same owner + org-sharing model as native agents (same `isShared` / `createdBy` fields)
 - [ ] **REG-05**: User can edit and delete their registered external runtimes
 
@@ -31,7 +31,7 @@
 
 - [x] **INFRA-01**: `bedrock-agentcore:InvokeRuntime` permission added to the backend Lambda execution role in CDK
 - [x] **INFRA-02**: New backend route `POST /agents/:agentId/invoke` (or similar) that handles the SigV4 proxy logic
-- [ ] **INFRA-03**: Backend agent API (`GET /agents/:agentId`) returns the new optional fields to the frontend
+- [x] **INFRA-03**: Backend agent API (`GET /agents/:agentId`) returns the new optional fields to the frontend
 
 ## v2 Requirements
 
@@ -66,7 +66,7 @@
 |-------------|-------|--------|
 | REG-01 | Phase 2 | Pending |
 | REG-02 | Phase 2 | Pending |
-| REG-03 | Phase 1 | Pending |
+| REG-03 | Phase 1 | Complete |
 | REG-04 | Phase 1 | Done |
 | REG-05 | Phase 2 | Pending |
 | DISC-01 | Phase 2 | Pending |
@@ -79,7 +79,7 @@
 | INV-06 | Phase 3 | Pending |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 16 total

@@ -12,7 +12,7 @@
 
 **Why first:** Everything downstream (UI, invocation wiring) depends on the data model being stable and the proxy route existing. Frontend can be built against a contract that is already deployed and testable. CDK changes must precede any live invocation because the Lambda execution role needs `bedrock-agentcore:InvokeRuntime` before the proxy handler can call the service.
 
-**Plans:** 0/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 01-01-PLAN.md — Extend agent schema: types, UpdateAgentPatch, item.ts marshal, Zod schemas (REG-03, INFRA-03) [wave 1]
@@ -65,7 +65,7 @@ Plans:
 - [ ] **Create `EditExternalRuntimeModal` / inline edit** — pre-populates form with existing values; on submit calls `updateAgent`; includes a Delete button that calls `deleteAgent` with a confirmation dialog (REG-05)
 - [ ] **Add visual distinction to agent list** — in the existing agent list component, detect `agentType === 'external_agentcore'` and render a badge (e.g. "External" chip in a distinct color) or a different icon alongside the agent name (DISC-01)
 - [ ] **Enable chat entry point** — ensure the "Open chat" / "Start session" action for external runtime agents is accessible from both the agent list and the Integrations page; for Phase 2 the button can navigate to the existing chat view with the selected agent — Phase 3 will intercept the invocation path (INV-01)
-- [ ] **Update `Agent` TypeScript type in frontend** — add the four new fields to `packages/frontend/src/types/agent.ts` (mirrors the backend change from Phase 1; likely already done if Phase 1 tasks were completed together)
+- [x] **Update `Agent` TypeScript type in frontend** — add the four new fields to `packages/frontend/src/types/agent.ts` (mirrors the backend change from Phase 1; likely already done if Phase 1 tasks were completed together) (completed 2026-06-28)
 - [ ] **Update `agentStore`** — no structural changes needed; confirm `createAgent` / `updateAgent` / `deleteAgent` actions already dispatch to the correct backend endpoints with the full body; extend store selectors if needed to filter external vs. native agents
 - [ ] **Write component tests** — cover: form validation rejects missing ARN/region when agentType is external; successful submit creates the agent and adds it to the list; delete confirmation removes the agent; badge renders for external agents in the list
 
