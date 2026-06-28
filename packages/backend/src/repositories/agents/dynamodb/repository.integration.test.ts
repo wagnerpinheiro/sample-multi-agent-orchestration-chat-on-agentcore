@@ -264,4 +264,58 @@ describe('DynamoDBAgentsRepository', () => {
     const secondPage = await repo.listShared(1, firstPage.lastEvaluatedKey);
     expect(secondPage.agents[0].agentId).not.toBe(firstPage.agents[0].agentId);
   });
+
+  describe('external AgentCore runtime fields (D-02)', () => {
+    it('put/get round-trips all four new fields for an external_agentcore agent', async () => {
+      const agent = makeAgent(USER_A, {
+        agentType: 'external_agentcore',
+        externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/test',
+        externalRuntimeRegion: 'us-west-2',
+        streamFormat: 'other',
+      });
+      await repo.put(agent);
+
+      const got = await repo.get(USER_A, agent.agentId);
+      expect(got).not.toBeNull();
+      expect(got!.agentType).toBe('external_agentcore');
+      expect(got!.externalRuntimeArn).toBe(
+        'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/test'
+      );
+      expect(got!.externalRuntimeRegion).toBe('us-west-2');
+      expect(got!.streamFormat).toBe('other');
+    });
+
+    it('update patches streamFormat while leaving the other three new fields unchanged', async () => {
+      const agent = makeAgent(USER_A, {
+        agentType: 'external_agentcore',
+        externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/patch',
+        externalRuntimeRegion: 'eu-west-1',
+        streamFormat: 'other',
+      });
+      await repo.put(agent);
+
+      const updated = await repo.update(USER_A, agent.agentId, { streamFormat: 'strands' });
+
+      expect(updated.streamFormat).toBe('strands');
+      expect(updated.agentType).toBe('external_agentcore');
+      expect(updated.externalRuntimeArn).toBe(
+        'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/patch'
+      );
+      expect(updated.externalRuntimeRegion).toBe('eu-west-1');
+    });
+
+    it('get returns undefined for the four new fields when a native agent has none set (D-02)', async () => {
+      // A native agent put without the four new fields must not surface them as
+      // any non-undefined value — the schemaless default must be undefined.
+      const nativeAgent = makeAgent(USER_A); // no agentType/externalRuntimeArn/etc.
+      await repo.put(nativeAgent);
+
+      const got = await repo.get(USER_A, nativeAgent.agentId);
+      expect(got).not.toBeNull();
+      expect(got!.agentType).toBeUndefined();
+      expect(got!.externalRuntimeArn).toBeUndefined();
+      expect(got!.externalRuntimeRegion).toBeUndefined();
+      expect(got!.streamFormat).toBeUndefined();
+    });
+  });
 });

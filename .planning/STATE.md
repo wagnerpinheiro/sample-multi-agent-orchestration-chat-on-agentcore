@@ -58,10 +58,23 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 | 2026-06-28 | Dedicated Integrations screen | Keeps external runtime registration separate from native agent creation |
 | 2026-06-28 | node:https.request for SigV4 proxy | Consistent with session-stream-handler pattern; no extra HTTP client dependency |
 | 2026-06-28 | Stream wrapped in Promise<void> | asyncHandler must hold connection open until upstream stream completes |
+| 2026-06-28 | cloneAgent auto-fixed to map four new external runtime fields | Rule 1 bug exposed by tests — fields were silently dropped on clone |
+| 2026-06-28 | TESTCONTAINERS_RYUK_DISABLED required for Podman on macOS | Ryuk needs Docker socket volume mount which Podman does not support |
 
 ---
 
-*Last updated: 2026-06-28 — plan 01-03 complete (SigV4 invoke proxy route)*
+## Phase 1 Completed Plans
+
+| Plan | Name | Status | Commit(s) |
+|------|------|--------|-----------|
+| 01-01 | Extend agent data layer | Done | 8459d32, a13bd79 |
+| 01-02 | IAM InvokeRuntime permission | Done | 3f74cad |
+| 01-03 | SigV4 invoke proxy route | Done | fa6ce5e, 93c77bb |
+| 01-04 | Sharing/clone + integration tests | Done | 9cc9388, 492ea1e |
+
+---
+
+*Last updated: 2026-06-28 — all Phase 1 plans complete*
 
 ---
 

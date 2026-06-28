@@ -234,6 +234,109 @@ describe('AgentsService', () => {
     });
   });
 
+  describe('listSharedAgents — external_agentcore visibility (DISC-02)', () => {
+    it('includes external_agentcore agents in the shared listing without filtering by agentType', async () => {
+      const externalAgent = makeAgent({
+        agentId: 'ext-agent-1' as AgentId,
+        name: 'External Runtime Agent',
+        isShared: true,
+        agentType: 'external_agentcore',
+        externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/x',
+      });
+      repo.listShared.mockResolvedValueOnce({ agents: [externalAgent] });
+
+      const result = await service.listSharedAgents(10);
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].agentType).toBe('external_agentcore');
+      expect(result.items[0].externalRuntimeArn).toBe(
+        'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/x'
+      );
+    });
+
+    it('returns external_agentcore alongside native agents in a mixed listing', async () => {
+      const nativeAgent = makeAgent({ agentId: 'native-1' as AgentId, name: 'Native Agent', isShared: true });
+      const externalAgent = makeAgent({
+        agentId: 'ext-1' as AgentId,
+        name: 'External Agent',
+        isShared: true,
+        agentType: 'external_agentcore',
+        externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/y',
+      });
+      repo.listShared.mockResolvedValueOnce({ agents: [nativeAgent, externalAgent] });
+
+      const result = await service.listSharedAgents(10);
+
+      expect(result.items).toHaveLength(2);
+      const types = result.items.map((a) => a.agentType ?? 'moca');
+      expect(types).toContain('external_agentcore');
+    });
+  });
+
+  describe('cloneAgent — external_agentcore field preservation (REG-04)', () => {
+    it('preserves agentType, externalRuntimeArn, externalRuntimeRegion, and streamFormat when cloning', async () => {
+      repo.get.mockResolvedValueOnce(
+        makeAgent({
+          userId: 'source-user' as UserId,
+          agentId: 'source-ext-agent' as AgentId,
+          name: 'External Shared Agent',
+          systemPrompt: 'You are an external agent',
+          isShared: true,
+          agentType: 'external_agentcore',
+          externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/z',
+          externalRuntimeRegion: 'us-east-1',
+          streamFormat: 'strands',
+        })
+      );
+
+      const cloned = await service.cloneAgent(
+        'target-user' as UserId,
+        'source-user' as UserId,
+        'source-ext-agent' as AgentId,
+        'targetuser'
+      );
+
+      expect(cloned.agentType).toBe('external_agentcore');
+      expect(cloned.externalRuntimeArn).toBe(
+        'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/z'
+      );
+      expect(cloned.externalRuntimeRegion).toBe('us-east-1');
+      expect(cloned.streamFormat).toBe('strands');
+    });
+
+    it('clones an external_agentcore agent into the target user with a new id and isShared=false', async () => {
+      repo.get.mockResolvedValueOnce(
+        makeAgent({
+          userId: 'source-user' as UserId,
+          agentId: 'source-ext-agent-2' as AgentId,
+          name: 'Shared External Agent',
+          isShared: true,
+          agentType: 'external_agentcore',
+          externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-west-2:999999999999:runtime/abc',
+          externalRuntimeRegion: 'us-west-2',
+          streamFormat: 'other',
+        })
+      );
+
+      const cloned = await service.cloneAgent(
+        'target-user' as UserId,
+        'source-user' as UserId,
+        'source-ext-agent-2' as AgentId
+      );
+
+      expect(cloned.userId).toBe('target-user');
+      expect(cloned.agentId).not.toBe('source-ext-agent-2');
+      expect(cloned.isShared).toBe(false);
+      expect(cloned.agentType).toBe('external_agentcore');
+      expect(cloned.externalRuntimeArn).toBe(
+        'arn:aws:bedrock-agentcore:us-west-2:999999999999:runtime/abc'
+      );
+      expect(cloned.externalRuntimeRegion).toBe('us-west-2');
+      expect(cloned.streamFormat).toBe('other');
+      expect(repo.put).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('listSharedAgents — cursor + filter policy', () => {
     it('decodes a base64 cursor and passes it to the repo as exclusiveStartKey', async () => {
       const startKey = { userId: 'u1', agentId: 'a1', isShared: 'true' };

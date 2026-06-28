@@ -18,7 +18,7 @@ Plans:
 - [ ] 01-01-PLAN.md — Extend agent schema: types, UpdateAgentPatch, item.ts marshal, Zod schemas (REG-03, INFRA-03) [wave 1]
 - [ ] 01-02-PLAN.md — CDK: grant bedrock-agentcore:InvokeRuntime to backend Lambda role (INFRA-01) [wave 1]
 - [x] 01-03-PLAN.md — Add POST /agents/:agentId/invoke SigV4 proxy route + signing deps (INFRA-02) [wave 2]
-- [ ] 01-04-PLAN.md — Verify sharing/clone + integration round-trip for external agents (REG-04, DISC-02) [wave 2]
+- [x] 01-04-PLAN.md — Verify sharing/clone + integration round-trip for external agents (REG-04, DISC-02) [wave 2]
 
 ### Tasks
 
