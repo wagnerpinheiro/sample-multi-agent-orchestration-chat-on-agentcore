@@ -10,13 +10,13 @@
 - [ ] **REG-01**: User can navigate to a dedicated Integrations screen in the Moca UI
 - [ ] **REG-02**: User can create an external runtime integration by providing: Runtime ARN (required), AWS region (optional, defaults to deployment region), display name, description, and stream format (`strands` | `other`)
 - [ ] **REG-03**: Registered external runtimes are stored as agent records in DynamoDB with `agentType: 'external_agentcore'` and optional fields `externalRuntimeArn`, `externalRuntimeRegion`, `streamFormat`
-- [ ] **REG-04**: External runtimes follow the same owner + org-sharing model as native agents (same `isShared` / `createdBy` fields)
+- [x] **REG-04**: External runtimes follow the same owner + org-sharing model as native agents (same `isShared` / `createdBy` fields)
 - [ ] **REG-05**: User can edit and delete their registered external runtimes
 
 ### Discovery
 
 - [ ] **DISC-01**: External runtime agents appear in the main agent list alongside native Moca agents, visually distinguished (e.g., badge or icon)
-- [ ] **DISC-02**: External runtimes shared with the org are visible to all users (same as native shared agents)
+- [x] **DISC-02**: External runtimes shared with the org are visible to all users (same as native shared agents)
 
 ### Invocation
 
@@ -67,10 +67,10 @@
 | REG-01 | Phase 2 | Pending |
 | REG-02 | Phase 2 | Pending |
 | REG-03 | Phase 1 | Pending |
-| REG-04 | Phase 1 | Pending |
+| REG-04 | Phase 1 | Done |
 | REG-05 | Phase 2 | Pending |
 | DISC-01 | Phase 2 | Pending |
-| DISC-02 | Phase 1 | Pending |
+| DISC-02 | Phase 1 | Done |
 | INV-01 | Phase 2 | Pending |
 | INV-02 | Phase 3 | Pending |
 | INV-03 | Phase 3 | Pending |
