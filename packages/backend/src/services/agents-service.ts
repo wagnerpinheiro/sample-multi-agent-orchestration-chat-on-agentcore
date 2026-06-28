@@ -114,6 +114,10 @@ export class AgentsService {
       updatedAt: now,
       isShared: false, // Default to private
       createdBy: username || userId, // Use userId if username is not available
+      agentType: input.agentType,
+      externalRuntimeArn: input.externalRuntimeArn,
+      externalRuntimeRegion: input.externalRuntimeRegion,
+      streamFormat: input.streamFormat,
     };
 
     await this.repo.put(agent);

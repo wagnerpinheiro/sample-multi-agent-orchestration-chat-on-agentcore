@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { toDynamoAgent, fromDynamoAgent, buildAgentUpdateExpression } from '../item.js';
+import { toDynamoAgent, fromDynamoAgent, buildAgentUpdateExpression, toItemAttr, fromItemAttr } from '../item.js';
 import type { Agent } from '../../../../types/agent-types.js';
 import type { UserId, AgentId } from '@moca/core';
 
@@ -23,6 +23,24 @@ const baseAgent: Agent = {
   updatedAt: '2026-01-01T00:00:00Z',
   isShared: false,
   createdBy: 'u1',
+};
+
+const externalAgent: Agent = {
+  userId: 'u1' as UserId,
+  agentId: 'a1' as AgentId,
+  name: 'n',
+  description: 'd',
+  systemPrompt: 's',
+  enabledTools: [],
+  scenarios: [],
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+  isShared: false,
+  createdBy: 'u1',
+  agentType: 'external_agentcore',
+  externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/test',
+  externalRuntimeRegion: 'us-east-1',
+  streamFormat: 'strands',
 };
 
 describe('toDynamoAgent / fromDynamoAgent', () => {
@@ -77,5 +95,47 @@ describe('buildAgentUpdateExpression', () => {
     expect(updateExpression).toContain('#defaultStoragePath = :defaultStoragePath');
     expect(updateExpression).not.toContain('REMOVE');
     expect(attributeValues[':defaultStoragePath']).toBe('/work');
+  });
+
+  it('emits SET clauses for all four external runtime fields when present in patch', () => {
+    const { updateExpression } = buildAgentUpdateExpression(
+      {
+        agentType: 'external_agentcore',
+        externalRuntimeArn: 'arn:x',
+        externalRuntimeRegion: 'us-east-1',
+        streamFormat: 'other',
+      },
+      now
+    );
+    expect(updateExpression).toContain('#agentType = :agentType');
+    expect(updateExpression).toContain('#externalRuntimeArn = :externalRuntimeArn');
+    expect(updateExpression).toContain('#externalRuntimeRegion = :externalRuntimeRegion');
+    expect(updateExpression).toContain('#streamFormat = :streamFormat');
+  });
+
+  it('does NOT include external runtime SET clauses when patch omits them', () => {
+    const { updateExpression } = buildAgentUpdateExpression({}, now);
+    expect(updateExpression).not.toContain(':agentType');
+    expect(updateExpression).not.toContain(':externalRuntimeArn');
+    expect(updateExpression).not.toContain(':externalRuntimeRegion');
+    expect(updateExpression).not.toContain(':streamFormat');
+  });
+});
+
+describe('toItemAttr / fromItemAttr round-trip', () => {
+  it('preserves all four external runtime fields through marshal/unmarshal', () => {
+    const roundTripped = fromItemAttr(toItemAttr(externalAgent));
+    expect(roundTripped).toEqual(externalAgent);
+  });
+
+  it('leaves external runtime fields undefined for a native agent without them', () => {
+    const item = toItemAttr(baseAgent);
+    // Marshall with removeUndefinedValues=true drops absent optional fields
+    expect('agentType' in item).toBe(false);
+    const roundTripped = fromItemAttr(item);
+    expect(roundTripped.agentType).toBeUndefined();
+    expect(roundTripped.externalRuntimeArn).toBeUndefined();
+    expect(roundTripped.externalRuntimeRegion).toBeUndefined();
+    expect(roundTripped.streamFormat).toBeUndefined();
   });
 });
