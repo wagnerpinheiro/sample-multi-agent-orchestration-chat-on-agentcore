@@ -8,8 +8,14 @@
  * handlers receive already-typed `params`/`body`.
  */
 
+import https from 'node:https';
+import { URL } from 'node:url';
+import { SignatureV4 } from '@smithy/signature-v4';
+import { Sha256 } from '@aws-crypto/sha256-js';
+import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { Router } from 'express';
 import { z } from 'zod';
+import { config } from '../config/index.js';
 import {
   type AuthenticatedRequest,
   getCurrentAuth,
@@ -151,6 +157,119 @@ router.post(
     );
 
     res.status(201).json(ok(req, { agent }, { userId }));
+  })
+);
+
+/**
+ * External AgentCore Runtime invocation proxy.
+ * POST /agents/:agentId/invoke
+ * SigV4-signs an outbound request to the agent's external runtime and relays
+ * the response. Native (moca) agents are rejected with 400 — they use the
+ * direct agent endpoint, not this proxy.
+ */
+router.post(
+  '/:agentId/invoke',
+  resolveTargetUser,
+  validate({ params: agentIdParams }),
+  asyncHandler(async (req: AuthenticatedRequest, res) => {
+    const userId = req.targetUserId!;
+    const agentId = parseAgentId(req.params.agentId);
+
+    const agentsService = createAgentsService();
+    const agent = await agentsService.getAgent(userId, agentId);
+    if (!agent) {
+      throw new AppError(ErrorCode.NOT_FOUND, 'Agent not found');
+    }
+    if (agent.agentType !== 'external_agentcore') {
+      throw new AppError(
+        ErrorCode.VALIDATION_ERROR,
+        'This route is only for external_agentcore agents'
+      );
+    }
+    if (!agent.externalRuntimeArn) {
+      throw new AppError(
+        ErrorCode.VALIDATION_ERROR,
+        'External agent is missing externalRuntimeArn'
+      );
+    }
+
+    const region = agent.externalRuntimeRegion ?? config.AWS_REGION;
+    const encodedArn = encodeURIComponent(agent.externalRuntimeArn);
+    const endpointUrl = `https://bedrock-agentcore.${region}.amazonaws.com/runtimes/${encodedArn}/invocations?qualifier=DEFAULT`;
+    const url = new URL(endpointUrl);
+    const bodyString = JSON.stringify(req.body ?? {});
+
+    const signer = new SignatureV4({
+      service: 'bedrock-agentcore',
+      region,
+      credentials: defaultProvider(),
+      sha256: Sha256,
+    });
+    const signed = await signer.sign({
+      method: 'POST',
+      protocol: url.protocol,
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(bodyString).toString(),
+        host: url.hostname,
+      },
+      body: bodyString,
+    });
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+
+    await new Promise<void>((resolve, reject) => {
+      const upstreamReq = https.request(
+        {
+          hostname: url.hostname,
+          port: 443,
+          path: url.pathname + url.search,
+          method: 'POST',
+          headers: signed.headers,
+        },
+        (upstreamRes) => {
+          if (upstreamRes.statusCode && upstreamRes.statusCode >= 400) {
+            res.status(upstreamRes.statusCode);
+          }
+          if (agent.streamFormat === 'strands') {
+            upstreamRes.pipe(res);
+            res.on('finish', resolve);
+            upstreamRes.on('error', reject);
+          } else {
+            let buffer = '';
+            upstreamRes.on('data', (chunk: Buffer) => {
+              buffer += chunk.toString();
+            });
+            upstreamRes.on('end', () => {
+              res.write(
+                `data: ${JSON.stringify({
+                  type: 'content_block_delta',
+                  delta: { type: 'text_delta', text: buffer },
+                })}\n\n`
+              );
+              res.write('data: [DONE]\n\n');
+              res.end();
+              resolve();
+            });
+            upstreamRes.on('error', reject);
+          }
+        }
+      );
+      upstreamReq.on('error', (err) => {
+        req.log.error({ err }, 'External runtime request failed');
+        reject(
+          new AppError(
+            ErrorCode.UPSTREAM_ERROR,
+            `External runtime request failed: ${err.message}`
+          )
+        );
+      });
+      upstreamReq.write(bodyString);
+      upstreamReq.end();
+    });
   })
 );
 

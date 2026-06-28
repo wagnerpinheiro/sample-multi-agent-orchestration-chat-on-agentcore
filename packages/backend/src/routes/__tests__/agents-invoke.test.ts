@@ -47,6 +47,22 @@ jest.mock('../../config/index.js', () => ({
   isDevelopment: false,
 }));
 
+// Mock the auth middleware so resolveTargetUser just calls next() after setting
+// targetUserId — avoiding real JWT / Cognito verification in unit tests.
+const STUB_USER_ID = 'us-east-1:00000000-0000-0000-0000-000000000001';
+jest.mock('../../middleware/auth.js', () => {
+  const original = jest.requireActual<typeof import('../../middleware/auth.js')>(
+    '../../middleware/auth.js'
+  );
+  return {
+    ...original,
+    resolveTargetUser: (req: Request, _res: Response, next: NextFunction) => {
+      (req as Request & { targetUserId: string }).targetUserId = STUB_USER_ID;
+      next();
+    },
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Capture outbound https.request calls so we can assert on signed headers.
 // ---------------------------------------------------------------------------
@@ -110,10 +126,9 @@ function buildApp() {
   const app = express();
   app.use(express.json());
 
-  // Stub auth: inject targetUserId and a log stub into every request.
+  // Inject a log stub into every request (req.log is used by route handlers
+  // and the error handler middleware).
   app.use((req: Request, _res: Response, next: NextFunction) => {
-    (req as Request & { targetUserId: string; log: unknown }).targetUserId =
-      'us-east-1:test-user-id';
     (req as Request & { log: unknown }).log = {
       info: jest.fn(),
       warn: jest.fn(),
@@ -173,8 +188,15 @@ function postJson(
 // Test agent fixtures
 // ---------------------------------------------------------------------------
 
+// Agent IDs must be valid UUIDs (enforced by zAgentId / isAgentId in @moca/core).
+const EXTERNAL_AGENT_STRANDS_ID = '11111111-1111-1111-1111-111111111111';
+const EXTERNAL_AGENT_OTHER_ID = '22222222-2222-2222-2222-222222222222';
+const MOCA_AGENT_ID = '33333333-3333-3333-3333-333333333333';
+const LEGACY_AGENT_ID = '44444444-4444-4444-4444-444444444444';
+const NOT_FOUND_AGENT_ID = '55555555-5555-5555-5555-555555555555';
+
 const EXTERNAL_AGENT_STRANDS = {
-  agentId: 'agent-external-strands',
+  agentId: EXTERNAL_AGENT_STRANDS_ID,
   name: 'External Strands Agent',
   agentType: 'external_agentcore' as const,
   externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/test-runtime',
@@ -183,7 +205,7 @@ const EXTERNAL_AGENT_STRANDS = {
 };
 
 const EXTERNAL_AGENT_OTHER = {
-  agentId: 'agent-external-other',
+  agentId: EXTERNAL_AGENT_OTHER_ID,
   name: 'External Other Agent',
   agentType: 'external_agentcore' as const,
   externalRuntimeArn: 'arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/other-runtime',
@@ -192,7 +214,7 @@ const EXTERNAL_AGENT_OTHER = {
 };
 
 const MOCA_AGENT = {
-  agentId: 'agent-native-moca',
+  agentId: MOCA_AGENT_ID,
   name: 'Native Moca Agent',
   agentType: 'moca' as const,
 };
@@ -220,7 +242,7 @@ describe('POST /:agentId/invoke', () => {
   it('returns 404 when getAgent returns null', async () => {
     mockGetAgent.mockResolvedValue(null);
 
-    const res = await postJson(server, '/agent-does-not-exist/invoke', { prompt: 'hello' });
+    const res = await postJson(server, `/${NOT_FOUND_AGENT_ID}/invoke`, { prompt: 'hello' });
 
     expect(res.status).toBe(404);
     expect(res.body).toMatchObject({ code: 'NOT_FOUND' });
@@ -231,16 +253,16 @@ describe('POST /:agentId/invoke', () => {
   it('returns 400 when the agent is a native moca agent (agentType: moca)', async () => {
     mockGetAgent.mockResolvedValue(MOCA_AGENT);
 
-    const res = await postJson(server, `/${MOCA_AGENT.agentId}/invoke`, { prompt: 'hello' });
+    const res = await postJson(server, `/${MOCA_AGENT_ID}/invoke`, { prompt: 'hello' });
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ code: 'VALIDATION_ERROR' });
   });
 
   it('returns 400 when the agent has no agentType (native/legacy moca)', async () => {
-    mockGetAgent.mockResolvedValue({ agentId: 'legacy-agent', name: 'Legacy' });
+    mockGetAgent.mockResolvedValue({ agentId: LEGACY_AGENT_ID, name: 'Legacy' });
 
-    const res = await postJson(server, '/legacy-agent/invoke', { prompt: 'hello' });
+    const res = await postJson(server, `/${LEGACY_AGENT_ID}/invoke`, { prompt: 'hello' });
 
     expect(res.status).toBe(400);
     expect(res.body).toMatchObject({ code: 'VALIDATION_ERROR' });
@@ -261,7 +283,7 @@ describe('POST /:agentId/invoke', () => {
       return r;
     };
 
-    const res = await postJson(server, `/${EXTERNAL_AGENT_STRANDS.agentId}/invoke`, {
+    const res = await postJson(server, `/${EXTERNAL_AGENT_STRANDS_ID}/invoke`, {
       prompt: 'hello',
     });
 
@@ -304,7 +326,7 @@ describe('POST /:agentId/invoke', () => {
       return r;
     };
 
-    const res = await postJson(server, `/${EXTERNAL_AGENT_OTHER.agentId}/invoke`, {
+    const res = await postJson(server, `/${EXTERNAL_AGENT_OTHER_ID}/invoke`, {
       prompt: 'hello',
     });
 
