@@ -90,6 +90,11 @@ export function buildAgentUpdateExpression(
     }
   }
 
+  if (patch.agentType !== undefined) set('agentType', patch.agentType);
+  if (patch.externalRuntimeArn !== undefined) set('externalRuntimeArn', patch.externalRuntimeArn);
+  if (patch.externalRuntimeRegion !== undefined) set('externalRuntimeRegion', patch.externalRuntimeRegion);
+  if (patch.streamFormat !== undefined) set('streamFormat', patch.streamFormat);
+
   // updatedAt is always refreshed.
   set('updatedAt', now);
 

@@ -504,6 +504,18 @@ export class AgentCoreStack extends cdk.Stack {
       })
     );
 
+    // Grant Backend API permission to invoke external AgentCore Runtimes.
+    // Account-scoped to runtime/* so newly registered external runtimes do not
+    // require a policy update per registration (see CONTEXT D-12).
+    this.backendApi.lambdaFunction.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        sid: 'InvokeExternalAgentCoreRuntime',
+        effect: cdk.aws_iam.Effect.ALLOW,
+        actions: ['bedrock-agentcore:InvokeRuntime'],
+        resources: [`arn:aws:bedrock-agentcore:${this.region}:${this.account}:runtime/*`],
+      })
+    );
+
     // Add environment variables for trigger management to Backend API
     this.backendApi.lambdaFunction.addEnvironment('TRIGGERS_TABLE_NAME', triggersTable.tableName);
     this.backendApi.lambdaFunction.addEnvironment('TRIGGER_LAMBDA_ARN', triggerLambda.functionArn);
@@ -1077,7 +1089,8 @@ export class AgentCoreStack extends cdk.Stack {
     // Backend API execution role: all addToRolePolicy and grantReadWrite calls land here
     // because BackendApiFunction uses an explicit role (BackendApiExecutionRole).
     // Wildcards: DynamoDB GSI index/*, SSM parameters/agents/*,
-    // Scheduler schedule/default/*, Secrets Manager random suffix.
+    // Scheduler schedule/default/*, Secrets Manager random suffix,
+    // bedrock-agentcore runtime/*.
     NagSuppressions.addResourceSuppressionsByPath(
       this,
       [`/${id}/BackendApi/BackendApiExecutionRole/DefaultPolicy/Resource`],
@@ -1085,7 +1098,7 @@ export class AgentCoreStack extends cdk.Stack {
         {
           id: 'AwsSolutions-IAM5',
           reason:
-            'DynamoDB index/* is required because CDK grantReadWrite automatically adds GSI index/* to allow Query operations on all global secondary indexes of the table. SSM parameter/agents/* is required to scope per-agent parameters. Scheduler schedule/default/* scopes to the default group only. Secrets Manager suffix wildcard is unavoidable due to auto-generated 6-char suffix appended by AWS.',
+            'DynamoDB index/* is required because CDK grantReadWrite automatically adds GSI index/* to allow Query operations on all global secondary indexes of the table. SSM parameter/agents/* is required to scope per-agent parameters. Scheduler schedule/default/* scopes to the default group only. Secrets Manager suffix wildcard is unavoidable due to auto-generated 6-char suffix appended by AWS. bedrock-agentcore:runtime/* is account-scoped so newly registered external AgentCore runtimes do not require a per-ARN policy update.',
         },
       ]
     );

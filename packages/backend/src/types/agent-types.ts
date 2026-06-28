@@ -54,6 +54,13 @@ export interface Agent {
   // Sharing-related
   isShared: boolean; // Sharing flag (visible to entire organization)
   createdBy: string; // Creator name (Cognito username)
+
+  // External AgentCore runtime integration (Phase 1). Optional — absent on
+  // native agents, which default to 'moca' behavior.
+  agentType?: 'moca' | 'external_agentcore';
+  externalRuntimeArn?: string;
+  externalRuntimeRegion?: string;
+  streamFormat?: 'strands' | 'other';
 }
 
 /**
@@ -73,6 +80,10 @@ export interface CreateAgentInput {
   scenarios: Omit<Scenario, 'id'>[];
   mcpConfig?: MCPConfig;
   defaultStoragePath?: string;
+  agentType?: 'moca' | 'external_agentcore';
+  externalRuntimeArn?: string;
+  externalRuntimeRegion?: string;
+  streamFormat?: 'strands' | 'other';
 }
 
 export interface UpdateAgentInput extends Partial<CreateAgentInput> {

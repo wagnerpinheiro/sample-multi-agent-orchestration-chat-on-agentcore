@@ -43,7 +43,8 @@ export const environments: Record<Environment, EnvironmentConfigInput> = {
    * Development environment
    */
   dev: {
-    cognitoDomainPrefix: 'mocadev-<your-unique-suffix>',
+    cognitoDomainPrefix: 'mocadev-cirev-poc',
+    cloudFrontGeoRestriction: ['JP', 'US', 'BR'],
   },
 
   /**
