@@ -47,3 +47,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ---
 
 *Last updated: 2026-06-28 — project initialized*
+
+---
+
+## Quick Tasks Completed
+
+| Date | Task | Outcome |
+|------|------|---------|
+| 2026-06-28 | Fix frontend em branco no CloudFront (dev) | `cloudFrontGeoRestriction` adicionado `'BR'` em `environments.ts`; RCA salvo em `docs/rcas/2026-06-28-cloudfront-blank-page.md` |
